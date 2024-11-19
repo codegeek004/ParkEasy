@@ -11,6 +11,8 @@ Welcome to the **ParkEasy** repository! Follow the steps below to set up and run
 **Virtual Environment**: Isolate your project in a virtual environment where no mismatch of versions and libraries from your local machine occurs.
 **MySQL**: Ensure you have a MySQL server installed on your system for the database.
 ---
+
+---
 ##Installation Steps
 
 ###1. Clone the repository
