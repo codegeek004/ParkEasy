@@ -1,4 +1,3 @@
----
 #ParkEasy
 Welcome to the **ParkEasy** repository! Follow the steps below to set up and run this project on your local machine.
 ---
