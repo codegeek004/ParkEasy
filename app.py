@@ -5,15 +5,17 @@ from owner import owner
 from sensor import sensor
 from bookingslot import booking
 from payment import payment
-from auth import auth
+from auth import auth, login_required
 from bookingslot import clearExpiredBookings
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
+from utils import requires_role
 
 
 app = Flask(__name__)
 app.secret_key = 'kjasdfhoiuehsfowe9phif9824ye8972hwuiefohnsdfp'
 
+@login_required
 @app.route('/')
 def index():
     return render_template("index.html")
