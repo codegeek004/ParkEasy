@@ -14,32 +14,33 @@ Welcome to the **ParkEasy** repository! Follow the steps below to set up and run
 ---
 # Prerequisites
 
-**Python**: Ensure that you have Python3.8+ installed on your system. You can download it from [python.org](https://www.python.org)
-**Virtual Environment**: Isolate your project in a virtual environment where no mismatch of versions and libraries from your local machine occurs.
-**MySQL**: Ensure you have a MySQL server installed on your system for the database.
+1. **Python**: Ensure that you have Python3.8+ installed on your system. You can download it from [python.org](https://www.python.org).
+
+2. **Virtual Environment**: Isolate your project in a virtual environment where no mismatch of versions and libraries from your local machine occurs.
+3. **MySQL**: Ensure you have a MySQL server installed on your system for the database.
 
 
 
 ## Installation Steps
 
 ### 1. Clone the repository
-bash
+```bash
     git clone git@github.com:codegeek004/ParkEasy.git
     cd ParkEasy
-
+```
 
 ### 2. Setup the virtual environment
-bash
+```bash
     python -m venv venv
     source venv/bin/activate    # On macOS/Linux
     venv\Scripts\activate       # On Windows
-
+```
 
 ### 3. Install the requirements
 Install all the python packages from requirements.txt
-bash
+```bash
     pip install -r requirements.txt
-
+```
 
 ### 4. Configure the databae
 1. To configure the database in the ParkEasy directory.
@@ -48,7 +49,7 @@ bash
     mysql -u <your_username> -p
 
 3. Update your username and password in the db.py file.
-python
+```python
     import mysql.connector
     db_config1 = {
         'host' : 'localhost',
@@ -58,13 +59,12 @@ python
         }
     db = mysql.connector.connect(**db_config1)
     cursor = db.cursor(buffered=True)
-
+```
 
 ### 5. Run the server
-bash
+```bash
     python app.py
-
-
+```
 Access the project at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ---
