@@ -70,7 +70,7 @@ Access the project at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 ---
 
 ## Contributing
-Contributions are welcome! Please fork the repository, make your changes and create a pull request. Please 
+Contributions are welcome! Please fork the repository, make your changes and create a pull request.  
 
 ---
 
