@@ -47,6 +47,8 @@ Install all the python packages from requirements.txt
 2. Go to the MySql server and create database named parking.
 ```bash
     mysql -u <your_username> -p
+    create database parking;
+    use parking
 ```
 3. Update your username and password in the db.py file.
 ```python
