@@ -76,7 +76,6 @@ def add_data():
         S_No = SNo[0]
 
     except mysql.connector.Error as e:
-        print(e)
         db.rollback()
         flash('An error occurred. Please try again later','error')
         # return redirect(url_for('vehicle.add_data', SNo=SNo))
@@ -86,7 +85,7 @@ def add_data():
         maxVID = cursor.fetchone()[0]
         db.commit()
     except mysql.connector.Error as e:
-        print(e)
+        
         db.rollback()
         flash('An error occured. Please try again','error')
         return redirect(url_for('vehicle.add_data', SNo = S_No))
@@ -94,7 +93,6 @@ def add_data():
 
     if request.method == 'POST':
         if not username: 
-            print('username not found')
             flash('No username','error')
             return redirect(url_for('vehicle.add_data'))
 
@@ -129,7 +127,7 @@ def add_data():
             '''
             cursor.execute(insert_query, (VehicleID, VehicleType, VehicleNumber, VehicleName, S_No,))
             db.commit()
-            print('')
+         
         except mysql.connector.Error as e:
             db.rollback()
             flash('Error adding data', 'error')
@@ -220,7 +218,7 @@ def AdminVehicle():
             flash('An issue occurred. Please try again after sometime','error')
             return redirect(url_for('vehicle.AdminVehicle'))
 
-        print(VehicleID)
+        
         cursor.execute('SELECT SNO FROM Vehicle WHERE VehicleID=VehicleID')
         db.commit()
         S_No = cursor.fetchone()
@@ -319,7 +317,6 @@ def AdminVehicle():
             SNo = cursor.fetchone()
             S_No = SNo[0]
         except mysql.connector.Error as e:
-            print(e)
             flash('Error processing your payment', 'error')
             db.rollback()
             return redirect(url_for('auth.MyBookings'))
