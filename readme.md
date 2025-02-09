@@ -63,7 +63,18 @@ Install all the python packages from requirements.txt
     cursor = db.cursor(buffered=True)
 ```
 
-### 5. Run the server
+### 5. Populate the database
+Populate your database by running the scripts inside the faker folder. 
+###### You need to necessarily populate the database to enable functionalities in the application.
+```python
+    python generate_bookingslots.py
+    python generate_payments.py
+    python generate_slots.py
+    python generate_users.py
+```
+
+
+### 6. Run the server
 ```bash
     python app.py
 ```
