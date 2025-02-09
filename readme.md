@@ -67,10 +67,10 @@ Install all the python packages from requirements.txt
 Populate your database by running the scripts inside the faker folder. 
 ###### You need to necessarily populate the database to enable functionalities in the application.
 ```python
-    python generate_bookingslots.py
-    python generate_payments.py
-    python generate_slots.py
-    python generate_users.py
+    python faker/generate_bookingslots.py
+    python faker/generate_payments.py
+    python faker/generate_slots.py
+    python faker/generate_users.py
 ```
 
 
