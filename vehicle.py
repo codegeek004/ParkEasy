@@ -487,6 +487,7 @@ def add_vehicle():
         VehicleNumber = request.form.get('VehicleNumber')
         VehicleName = request.form.get('VehicleName')
         action = request.form.get('action')
+        print('action ke niche', action)
        
         check_number_query = 'SELECT VehicleNumber FROM vehicle'
         cursor.execute(check_number_query)
@@ -514,10 +515,13 @@ def add_vehicle():
             cursor.execute(insert_query, (VehicleID, VehicleType, VehicleNumber, VehicleName, S_No,))
             db.commit()
             print('')
+            print('action', action)
             if action == 'book_slot':
+                print('inside book_slot')
                 print('book_Slot mai gaya')
                 return redirect(url_for('bookingslot.add_data',VehicleID=VehicleID, SNo=SNo))
             elif action == 'save_vehicle':
+                print('inside save_vehicle')
                 print('save_vehicle mai gaya')
                 flash('Vehicle saved successfully')
                 return redirect(url_for('auth.dashboard'))
@@ -620,13 +624,13 @@ def MyBookingsUser():
         cursor.execute('SELECT VehicleID from vehicle where SNo=%s', (SNo,))
         db.commit()
         VID = cursor.fetchone()
-        VehicleID = VID[0]
-        if not VID:
-            flash('No current bookings')
+
+        VehicleID = VID[0] if VID else flash('No current bookings')
+    
         if not VehicleID:
             flash('No current bookings')
 
-        print("VehicleID in mybookingsuser:", VehicleID)
+        # print("VehicleID in mybookingsuser:", VehicleID)
 
 
         if not SNo:
