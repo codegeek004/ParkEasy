@@ -154,7 +154,6 @@ def add_data():
 			contact = data[10]
 			TotalPrice = data[11]
 			mode = data[12]
-			return redirect(url_for('payment.Generate_Receipt',VehicleID=VehicleID, duration=duration, TotalPrice=TotalPrice, mode=mode, PaymentID=PaymentID))
 
 		except mysql.connector.Error as e:
 			print('except mai gay' ,e)
@@ -185,6 +184,7 @@ def add_data():
 			# return render_template('add/payment.html',duration=duration, TotalPrice=TotalPrice, PaymentID=PaymentID)
 
 		
+		return redirect(url_for('payment.Generate_Receipt',VehicleID=VehicleID, duration=duration, TotalPrice=TotalPrice, mode=mode, PaymentID=PaymentID))
 
 	
 	Amount = session.get('TotalPrice')
