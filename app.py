@@ -11,7 +11,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 from utils import requires_role
 
-
 app = Flask(__name__)
 app.secret_key = 'kjasdfhoiuehsfowe9phif9824ye8972hwuiefohnsdfp'
 

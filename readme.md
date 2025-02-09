@@ -42,13 +42,13 @@ Install all the python packages from requirements.txt
     pip install -r requirements.txt
 ```
 
-### 4. Configure the databae
+### 4. Configure the database
 1. To configure the database in the ParkEasy directory.
 2. Go to the MySql server and create database named parking.
 ```bash
     mysql -u <your_username> -p
-    create database parking;
-    use parking
+
+
 ```
 3. Update your username and password in the db.py file.
 ```python
@@ -72,7 +72,9 @@ Access the project at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 ---
 
 ## Contributing
-Contributions are welcome! Please fork the repository, make your changes and create a pull request.  
+
+Contributions are welcome! Please fork the repository, make your changes and create a pull request. If you want to make any changes to the project. Please make all those changes in the dev branch
+
 
 ---
 
