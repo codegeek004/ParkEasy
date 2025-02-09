@@ -608,90 +608,90 @@ def delete_data(VehicleID):
 def MyBookingsUser():
     if request.method == 'GET':
         username = session.get('username')
-        print('username in mybookingsuser', username)
         if not username:
-            flash('An error ocurred. Please try again later', 'error')
+            flash('An error occurred. Please try again later', 'error')
             return redirect(url_for('index'))
 
+        # Fetch SNo of user
         cursor.execute('SELECT SNo FROM user WHERE username=%s', (username,))
         db.commit()
         S_No = cursor.fetchone()
-        print('SNo:',S_No)
+
         if not S_No:
-            flash('An error ocurred. Please try again later', 'error')
-            # return redirect(url_for('index'))
+            flash('An error occurred. Please try again later', 'error')
+            return redirect(url_for('index'))
+
         SNo = S_No[0]
-        cursor.execute('SELECT VehicleID from vehicle where SNo=%s', (SNo,))
+
+        # Fetch all Vehicle Numbers for this user
+        cursor.execute('SELECT VehicleNumber, VehicleID FROM vehicle WHERE SNo=%s', (SNo,))
         db.commit()
-        VID = cursor.fetchone()
+        vehicles = cursor.fetchall()
 
-        VehicleID = VID[0] if VID else flash('No current bookings')
-    
-        if not VehicleID:
-            flash('No current bookings')
+        if not vehicles:
+            flash('No vehicles found for this user', 'error')
+            return render_template('dashboard.html', data=[], datalist=[])
 
-        # print("VehicleID in mybookingsuser:", VehicleID)
-
-
-        if not SNo:
-            flash('An error ocurred. Please try again later', 'error')
-            # return redirect(url_for('index'))
-
+        # Store vehicle mapping
+        vehicle_map = {vehicle[1]: vehicle[0] for vehicle in vehicles}  # {VehicleID: VehicleNumber}
 
         try:
+            # Fetch past bookings
             fetch_query = '''
-                SELECT * from allotment WHERE username=%s AND TimeTo<curtime()
+                SELECT * FROM allotment WHERE username=%s AND TimeTo < CURTIME()
             '''
-            cursor.execute(fetch_query,(username,))
+            cursor.execute(fetch_query, (username,))
             db.commit()
             data = cursor.fetchall()
-            data_list = [[dashboard[0], dashboard[1], dashboard[2], dashboard[3], dashboard[4], dashboard[5], dashboard[6], dashboard[7], dashboard[8], dashboard[9], dashboard[10], dashboard[11], dashboard[12], dashboard[13]] for dashboard in data]
-            print('data_list past: ', data_list)
+            data_list = [[dashboard[col] for col in range(len(dashboard))] for dashboard in data]
+
             if not data_list:
                 flash('No past bookings', 'success')
         except mysql.connector.Error as e:
-            print('fetch past wale except mai')
             db.rollback()
-            print(e)
             flash('An error occurred. Please try again later', 'error')
             return redirect(url_for('index'))
-        print('VehicleID on top of try: ', VehicleID)
+
         try:
-            print('VehicleID on inside try: ', VehicleID)
+            # Fetch future bookings and correctly match them to VehicleNumber
             fetch_current = '''
                 SELECT  
-                        o.name, 
-                        o.contact, 
-                        v.VehicleType, 
-                        v.VehicleNumber,
-                        b.Date, 
-                        b.TimeFrom, 
-                        b.TimeTo, 
-                        b.duration, 
-                        o.address,
-                        b.BSlotID AS slot
-                    FROM owner o 
-                    INNER JOIN vehicle v ON o.SNo = v.SNo
-                    INNER JOIN bookingslot b ON o.SNo = b.SNo
-                    INNER JOIN user u ON o.SNo = u.SNo
-                    WHERE 
-                        o.SNo = %s AND b.VehicleID=%s AND (b.Date > CURDATE() OR (b.Date = CURDATE() AND b.TimeTo > CURTIME()))ORDER BY DATE DESC;
+                    o.name, 
+                    o.contact, 
+                    v.VehicleType, 
+                    v.VehicleID,  -- Fetch VehicleID instead of VehicleNumber
+                    b.Date, 
+                    b.TimeFrom, 
+                    b.TimeTo, 
+                    b.duration, 
+                    o.address,
+                    b.BSlotID AS slot
+                FROM owner o 
+                INNER JOIN vehicle v ON o.SNo = v.SNo  
+                INNER JOIN bookingslot b ON b.VehicleID = v.VehicleID  -- Ensure direct match on VehicleID
+                WHERE 
+                    b.SNo = %s  
+                    AND (b.Date > CURDATE() OR (b.Date = CURDATE() AND b.TimeTo > CURTIME()))
+                ORDER BY b.Date DESC;
             '''
-            cursor.execute(fetch_current,(SNo,VehicleID))
+
+            cursor.execute(fetch_current, (SNo,))
             data = cursor.fetchall()
-            print('current data: ',data)
-            datalist = [[booking[0], booking[1], booking[2], booking[3], booking[4], booking[5], booking[6], booking[7], booking[8], booking[9]] for booking in data]
-            print('datalist: ', datalist)
+
+            # Convert VehicleID back to VehicleNumber
+            datalist = []
+            for booking in data:
+                booking_list = list(booking)
+                vehicle_id = booking_list[3]  # Get VehicleID from result
+                booking_list[3] = vehicle_map.get(vehicle_id, "Unknown")  # Replace VehicleID with VehicleNumber
+                datalist.append(booking_list)
+
             if not datalist:
                 flash('No future bookings', 'success')
+
         except mysql.connector.Error as e:
-            print('fetch current wale except mai')
-            print(e)
             db.rollback()
-            flash('An error occured.Please try again later','error')
-        
+            flash('An error occurred. Please try again later', 'error')
 
     if 'role' in session:
-        return render_template('dashboard.html', data=data_list, datalist = datalist,
-                                                 role = session['role'])
-
+        return render_template('dashboard.html', data=data_list, datalist=datalist, role=session['role'])
