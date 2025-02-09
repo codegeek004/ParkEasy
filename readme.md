@@ -47,6 +47,8 @@ Install all the python packages from requirements.txt
 2. Go to the MySql server and create database named parking.
 ```bash
     mysql -u <your_username> -p
+
+
 ```
 3. Update your username and password in the db.py file.
 ```python
@@ -70,7 +72,9 @@ Access the project at [http://127.0.0.1:5000](http://127.0.0.1:5000)
 ---
 
 ## Contributing
+
 Contributions are welcome! Please fork the repository, make your changes and create a pull request. If you want to make any changes to the project. Please make all those changes in the dev branch
+
 
 ---
 
