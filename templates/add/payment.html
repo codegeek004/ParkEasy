@@ -5,15 +5,13 @@
 <h1>Add Payment Details</h1>
 <form id="commonFormID" method="POST" action="{{ url_for('payment.add_data') }}">
     <div class="flash message">
-        {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="alert alert-danger">
                     {% for message in messages %}
                         {{ message }}
                     {% endfor %}
                 </div>
-            {% endif %}
-        {% endwith %}
+          {% endif %}
     </div>
 
     <input class="CAlign" type="hidden" id="VehicleID" name="VehicleID" value="{{ VehicleID }}"><br><br>
