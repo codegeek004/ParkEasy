@@ -97,6 +97,7 @@ def register():
             db.commit()
             result = cursor.fetchone()
             maxS_No = result[0]
+            # owner_id = result[1]
             incrementedSNo = maxS_No + 1
             session['incrementedSNo'] = incrementedSNo
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
@@ -123,6 +124,7 @@ def register():
             return redirect(url_for('auth.login'))
         except mysql.connector.Error as e:
             db.rollback()
+            print(e)
             flash('Error adding owner data', 'danger')
 
     return render_template('auth/register.html')
@@ -275,10 +277,13 @@ def dashboard():
             '''
             cursor.execute(fetch_query, (username,))
             user = cursor.fetchone()
+            print(user)
             db.commit()
-            return render_template('user/dashboard.html', user=user, role=session['role'])
-        except:
-            flash('There is some issue with your data!', 'error')
+            return render_template('dashboard.html', user=user, role=session['role'])
+        except Exception as e:
+            print('e', e)
+
+            flash(f'There is some issue with your data!{e}', 'error')
             return redirect(url_for('auth.login_form'))
 
     return render_template('user/dashboard.html')
