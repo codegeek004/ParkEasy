@@ -645,8 +645,8 @@ def MyBookingsUser():
             data = cursor.fetchall()
             data_list = [[dashboard[col] for col in range(len(dashboard))] for dashboard in data]
 
-            if not data_list:
-                flash('No past bookings', 'success')
+            #if not data_list:
+                #flash('No past bookings', 'success')
         except mysql.connector.Error as e:
             db.rollback()
             flash('An error occurred. Please try again later', 'error')
@@ -686,8 +686,8 @@ def MyBookingsUser():
                 booking_list[3] = vehicle_map.get(vehicle_id, "Unknown")  # Replace VehicleID with VehicleNumber
                 datalist.append(booking_list)
 
-            if not datalist:
-                flash('No future bookings', 'success')
+            #if not datalist:
+                #flash('No future bookings', 'success')
 
         except mysql.connector.Error as e:
             db.rollback()
