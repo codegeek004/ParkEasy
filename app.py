@@ -10,10 +10,12 @@ from bookingslot import clearExpiredBookings
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 from utils import requires_role
-
+from decouple import config
+from authlib.integrations.flask_client import OAuth
+from oauth_config import oauth
 app = Flask(__name__)
 app.secret_key = 'kjasdfhoiuehsfowe9phif9824ye8972hwuiefohnsdfp'
-
+oauth.init_app(app) 
 @login_required
 @app.route('/')
 def index():
@@ -30,7 +32,8 @@ app.register_blueprint(auth)
 def inject_user():
     username = session.get('username')
     SNo = session.get('SNo')
-    return dict(username=username)
+    authenticated = bool(username)
+    return dict(username=username, authenticated=authenticated)
             
 def configure_scheduler():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
