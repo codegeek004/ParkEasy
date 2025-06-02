@@ -6,6 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import re
 from utils import requires_role
+import requests
+from authlib.integrations.flask_client import OAuth
+from flask import current_app as app
+from oauth_config import google
 
 auth = Blueprint('auth', __name__)
 
@@ -287,3 +291,18 @@ def dashboard():
             return redirect(url_for('auth.login_form'))
 
     return render_template('user/dashboard.html')
+
+
+
+@auth.route('/login/google/')
+def google_login():
+	redirect_uri = "http://127.0.0.1:5000/auth"
+	return google.authorize_redirect(redirect_uri)
+
+@auth.route('/auth')
+def google_auth():
+	token = google.authorize_access_token()
+	nonce = token.get('nonce')
+	user = google.parse_id_token(token, nonce=nonce)
+	session['user'] = user
+	return redirect(url_for('index'))
