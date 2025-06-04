@@ -6,7 +6,9 @@ from datetime import datetime, time
 from utils import requires_role
 import pdb
 import pdfkit
-
+import smtplib
+from email.message import EmailMessage
+from decouple import config
 
 payment = Blueprint('payment', __name__)
 
@@ -22,7 +24,7 @@ def display():
 	db.commit()
 	data = cursor.fetchall()
 
-	Null_query = 'SELECT p.PaymentID FROM payment p JOIN bookingslot b on p.PaymentID = b.BSlotID WHERE b.TimeFrom is Null and b.TimeTo is Null'
+	Null_query = 'SELECT p.PaymentID FROM bookingslot b on p.PaymentID = b.BSlotID WHERE b.TimeFrom is Null and b.TimeTo is Null'
 	cursor.execute(Null_query)
 	NullID = cursor.fetchone()
 
@@ -34,6 +36,7 @@ def add_data():
 	print('add data mai gaya')
 	VehicleID = request.args.get('VehicleID')
 	print('vehicleID ke niche')
+	session.get('user', {}).get('email')
 	if request.method == 'POST':
 		print('post method mai gaya')
 		PaymentID = session.get('BSlotID')
@@ -58,6 +61,7 @@ def add_data():
 		try:
 			print('try mai gya fetch wale')
 			fetchData = '''
+				
 				SELECT v.VehicleType, b.duration FROM vehicle v 
 				JOIN bookingslot b ON v.SNo = b.SNo
 				WHERE v.SNo=%s and v.VehicleID=%s
@@ -122,8 +126,7 @@ def add_data():
 					   b.Date, b.TimeFrom, b.TimeTo, b.duration, 
 					   u.SNo, u.username,     
 					   o.name, o.contact,     
-					   p.TotalPrice, p.mode 
-				FROM vehicle v
+					   p.TotalPrice, p.mode FROM vehicle v
 				JOIN bookingslot b ON v.SNo = b.SNo
 				JOIN user u ON v.SNo = u.SNo 
 				JOIN owner o ON u.SNo = o.SNo 
@@ -133,7 +136,7 @@ def add_data():
 				LIMIT 1
 					   
 			'''
-			cursor.execute(fetch_query, (SNo))
+			cursor.execute(fetch_query, SNo)
 			data = cursor.fetchone()
 			print('data', data)
 			if data is None:
@@ -155,11 +158,50 @@ def add_data():
 			TotalPrice = data[11]
 			mode = data[12]
 
+
+
 		except mysql.connector.Error as e:
 			print('except mai gay' ,e)
 			db.rollback()
 			flash('Error processing your payment', 'error')
 			return redirect(url_for('payment.add_data'))  
+		try:
+		    msg = EmailMessage()
+		    msg['subject'] = 'Here is your parking receipt'
+		    msg['from'] = 'codegeek004@gmail.com'
+		    msg['To'] = session.get('user', {}).get('email')  # Fixed
+
+		    html_content = f"""
+		    <html>
+		    <body>
+		        <h2>Parking Receipt</h2>
+		        <div>
+		            <p><strong>SlotID:</strong> {VehicleID}</p>
+		            <p><strong>Name:</strong> {name}</p>
+		            <p><strong>Contact:</strong> {contact}</p>
+		            <p><strong>Vehicle Type:</strong> {VehicleType}</p>
+		            <p><strong>Reg. No:</strong> {VehicleNumber}</p>
+		            <p><strong>Date:</strong> {date}</p>
+		            <p><strong>From:</strong> {TimeFrom}</p>
+		            <p><strong>To:</strong> {TimeTo}</p>
+		            <p><strong>Duration:</strong> {duration}</p>
+		            <p><strong>mode:</strong> {mode}</p>
+		        </div>
+		    </body>
+		    </html>
+		    """
+		    msg.add_alternative(html_content, subtype='html')
+
+		    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+		        smtp.starttls()
+		        smtp.login('codegeek004@gmail.com', config("app_password", cast=str))
+		        smtp.send_message(msg)
+
+		except Exception as e:
+		    print(e)
+		    flash('Error sending email', 'error')
+
+
 
 		try:
 			print('insert_query wale try mai gya')
@@ -253,8 +295,7 @@ def Generate_Receipt(PaymentID):
 	try:
 		fetch_query = '''
 			SELECT v.SNo, v.VehicleType, v.VehicleNumber, b.date, p.PaymentID, p.TotalPrice, p.Mode, b.TimeFrom, b.TimeTo, v.VehicleID
-			FROM payment p 
-			JOIN bookingslot b ON p.PaymentID = b.BSlotID 
+			FROM payment p JOIN bookingslot b ON p.PaymentID = b.BSlotID 
 			JOIN vehicle v  ON p.SNo = v.SNo
 			WHERE p.PaymentID=%s and v.VehicleID=%s
 		'''
@@ -279,7 +320,7 @@ def Generate_Receipt(PaymentID):
 			return redirect(url_for('vehicle.ChooseVehicle'))
 
 		if TimeFrom is None or TimeTo is None:
-			flash('Booking slot time data is missing', 'error')
+			print('modet time data is missing', 'error')
 			return redirect(url_for('payment.display'))
 
 		duration = (datetime.strptime(str(TimeTo), '%H:%M:%S') - datetime.strptime(str(TimeFrom), '%H:%M:%S')).seconds / 3600
