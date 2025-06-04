@@ -9,6 +9,7 @@ from utils import requires_role
 from flask_paginate import Pagination
 from utils import requires_role
 import csv
+import datetime
 Vehicle = Blueprint('vehicle', __name__)
 
 
@@ -68,6 +69,7 @@ def add_data():
     first_elements = [row[0] for row in lines if row]
     data = []
     username = session.get('username')
+    print('username', username)
     try:
         SNo = 'SELECT SNo FROM user WHERE username=%s'
         cursor.execute(SNo,(username,))
@@ -606,6 +608,7 @@ def delete_data(VehicleID):
 @Vehicle.route('/user/Bookings', methods=['GET', 'POST'])
 @login_required
 def MyBookingsUser():
+    print('inside MyBookingsUser function')
     if request.method == 'GET':
         username = session.get('username')
         if not username:
@@ -616,7 +619,6 @@ def MyBookingsUser():
         cursor.execute('SELECT SNo FROM user WHERE username=%s', (username,))
         db.commit()
         S_No = cursor.fetchone()
-
         if not S_No:
             flash('An error occurred. Please try again later', 'error')
             return redirect(url_for('index'))
@@ -627,71 +629,88 @@ def MyBookingsUser():
         cursor.execute('SELECT VehicleNumber, VehicleID FROM vehicle WHERE SNo=%s', (SNo,))
         db.commit()
         vehicles = cursor.fetchall()
-
         if not vehicles:
             flash('No vehicles found for this user', 'error')
-            return render_template('dashboard.html', data=[], datalist=[])
-
-        # Store vehicle mapping
-        vehicle_map = {vehicle[1]: vehicle[0] for vehicle in vehicles}  # {VehicleID: VehicleNumber}
+            return render_template('dashboard.html', future_booking_list=[], past_booking_list=[])
 
         try:
-            # Fetch past bookings
-            fetch_query = '''
-                SELECT * FROM allotment WHERE username=%s AND TimeTo < CURTIME()
-            '''
-            cursor.execute(fetch_query, (username,))
-            db.commit()
-            data = cursor.fetchall()
-            data_list = [[dashboard[col] for col in range(len(dashboard))] for dashboard in data]
+            # Fetch future bookings with de-duplication
+            fetch_future_query = '''
+                SELECT 
+                ANY_VALUE(u.username),
+                ANY_VALUE(o.name),
+                ANY_VALUE(o.contact),
+                ANY_VALUE(v.VehicleType),
+                ANY_VALUE(v.VehicleID),
+                b.Date,
+                b.TimeFrom,
+                b.TimeTo,
+                b.duration,
+                ANY_VALUE(o.address),
+                b.BSlotID AS slot
+            FROM owner o
+            INNER JOIN vehicle v ON o.SNo = v.SNo
+            INNER JOIN user u ON u.SNo = v.SNo
+            INNER JOIN bookingslot b ON b.VehicleID = v.VehicleID
+            WHERE u.username = %s
+            AND (
+                (b.Date > CURDATE()) OR
+                (b.Date = CURDATE() AND b.TimeTo > CURTIME())
+            )
+            GROUP BY b.BSlotID
+            ORDER BY b.Date DESC;
 
-            #if not data_list:
-                #flash('No past bookings', 'success')
+            '''
+            cursor.execute(fetch_future_query, (username,))
+            future_bookings = cursor.fetchall()
+            future_booking_list = [
+                [row[col] for col in range(len(row))] for row in future_bookings
+            ]
+            print('future_booking_list', future_booking_list)
+
+            # Fetch past bookings with de-duplication
+            fetch_past_query = '''
+                SELECT 
+                    ANY_VALUE(u.username),
+                    ANY_VALUE(o.name),
+                    ANY_VALUE(o.contact),
+                    ANY_VALUE(v.VehicleType),
+                    ANY_VALUE(v.VehicleID),
+                    b.Date,
+                    b.TimeFrom,
+                    b.TimeTo,
+                    b.duration,
+                    ANY_VALUE(o.address),
+                    b.BSlotID AS slot
+                FROM owner o
+                INNER JOIN vehicle v ON o.SNo = v.SNo
+                INNER JOIN user u ON u.SNo = v.SNo
+                INNER JOIN bookingslot b ON b.VehicleID = v.VehicleID
+                WHERE u.username = %s
+                AND (
+                    (b.Date < CURDATE()) OR
+                    (b.Date = CURDATE() AND b.TimeTo < CURTIME())
+                )
+                GROUP BY b.BSlotID
+                ORDER BY b.Date DESC;
+
+
+            '''
+            cursor.execute(fetch_past_query, (username,))
+            past_bookings = cursor.fetchall()
+            past_booking_list = [
+                [row[col] for col in range(len(row))] for row in past_bookings
+            ]
+            print('past_booking_list', past_booking_list)
+
         except mysql.connector.Error as e:
             db.rollback()
-            flash('An error occurred. Please try again later', 'error')
+            flash(f'An error occurred. Please try again later {e}', 'error')
             return redirect(url_for('index'))
 
-        try:
-            # Fetch future bookings and correctly match them to VehicleNumber
-            fetch_current = '''
-                SELECT  
-                    o.name, 
-                    o.contact, 
-                    v.VehicleType, 
-                    v.VehicleID,  -- Fetch VehicleID instead of VehicleNumber
-                    b.Date, 
-                    b.TimeFrom, 
-                    b.TimeTo, 
-                    b.duration, 
-                    o.address,
-                    b.BSlotID AS slot
-                FROM owner o 
-                INNER JOIN vehicle v ON o.SNo = v.SNo  
-                INNER JOIN bookingslot b ON b.VehicleID = v.VehicleID  -- Ensure direct match on VehicleID
-                WHERE 
-                    b.SNo = %s  
-                    AND (b.Date > CURDATE() OR (b.Date = CURDATE() AND b.TimeTo > CURTIME()))
-                ORDER BY b.Date DESC;
-            '''
-
-            cursor.execute(fetch_current, (SNo,))
-            data = cursor.fetchall()
-
-            # Convert VehicleID back to VehicleNumber
-            datalist = []
-            for booking in data:
-                booking_list = list(booking)
-                vehicle_id = booking_list[3]  # Get VehicleID from result
-                booking_list[3] = vehicle_map.get(vehicle_id, "Unknown")  # Replace VehicleID with VehicleNumber
-                datalist.append(booking_list)
-
-            #if not datalist:
-                #flash('No future bookings', 'success')
-
-        except mysql.connector.Error as e:
-            db.rollback()
-            flash('An error occurred. Please try again later', 'error')
-
-    if 'role' in session:
-        return render_template('dashboard.html', data=data_list, datalist=datalist, role=session['role'])
+        return render_template(
+            'dashboard.html',
+            future_booking_list=future_booking_list,
+            past_booking_list=past_booking_list,
+            role=session.get('role')
+        )
