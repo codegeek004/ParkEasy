@@ -262,19 +262,7 @@ def Generate_Receipt(PaymentID):
 		db.commit()
 		data = cursor.fetchone()
 		print(data)
-		print(session['role'])
-		if data is None:
-			flash('Slot not booked. Please book the slot to generate receipt', 'danger')
-			return redirect(url_for('payment.display'))
-		if session['role'] == 'user':
-			if data[5] == 0.0:
-				return redirect(url_for('vehicle.add_data',SNo=data[0]))
-		elif session['role'] == 'admin':
-			if data[5] == 0.0:
-				flash('An error occured. Please try again', 'error')
-				return redirect(url_for('vehicle.AdminVehicle'))
-		else:
-			return "Server failed"
+		
 
 
 		SNo = data[0]
