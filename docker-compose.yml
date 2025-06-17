@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DB=parking
+      - FLASK_APP=app.py
+    depends_on:
+      - db
+    command: flask run --host=0.0.0.0
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=parking
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  faker:
+    build:
+      context: .
+    depends_on:
+      - db
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DB=parking
+    command: >
+      sh -c "
+        echo 'Waiting for DB...' &&
+        while ! mysqladmin ping -hdb -u root -prootpass --silent; do
+          sleep 2;
+        done &&
+        echo 'Running Faker scripts...' &&
+        python -m faker_files.generate_users &&
+        python -m faker_files.generate_slots &&
+        python -m faker_files.generate_bookingslots &&
+        python -m faker_files.generate_payments
+      "
+
+volumes:
+  mysql_data:
+
