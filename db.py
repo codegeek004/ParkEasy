@@ -1,6 +1,6 @@
 import mysql.connector
 db_config1 = {
-        'host' : 'localhost',
+        'host' : 'db',
         'user' : 'root',
         'password' : 'root',
         'database' : 'parking'
