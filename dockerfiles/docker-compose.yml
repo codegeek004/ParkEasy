@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile_mysql
+    container_name: mysql_setup
+    env_file:
+      - .env
+    ports:
+      - "8001:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+  flask:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile_gunicorn
+    container_name: flask_app
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql_setup
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile_nginx
+    container_name: nginx_app
+    ports:
+      - "8000:80"
+    depends_on:
+      - flask
+    restart: always
+
+volumes:
+  mysql_data:
+
