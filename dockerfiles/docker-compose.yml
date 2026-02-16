@@ -7,7 +7,7 @@ services:
       dockerfile: dockerfiles/Dockerfile_mysql
     container_name: mysql_setup
     env_file:
-      - .env
+      - ../.env
     ports:
       - "8001:3306"
     volumes:
