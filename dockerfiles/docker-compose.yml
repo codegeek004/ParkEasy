@@ -4,7 +4,7 @@ services:
   mysql:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile_mysql
+      dockerfile: Dockerfile_mysql
     container_name: mysql_setup
     env_file:
       - ../.env
@@ -17,7 +17,7 @@ services:
   flask:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile_gunicorn
+      dockerfile: Dockerfile_gunicorn
     container_name: flask_app
     depends_on:
       - mysql
@@ -28,7 +28,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile_nginx
+      dockerfile: Dockerfile_nginx
     container_name: nginx_app
     ports:
       - "8000:80"
