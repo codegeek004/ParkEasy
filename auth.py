@@ -187,7 +187,7 @@ def login():
 				return redirect(url_for('auth.dashboard'))
 			else:
 				fetch_query = '''
-					SELECT p.mode FROM Payment p
+					SELECT p.mode FROM payment p
 					INNER JOIN user u ON p.SNo = u.SNo 
 					WHERE u.username = %s and p.mode <> ''
 				'''
